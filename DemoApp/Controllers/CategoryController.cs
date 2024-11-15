@@ -3,12 +3,14 @@ using DemoApp.Dto.Categories;
 using DemoApp.Dto.Category;
 using DemoApp.Interfaces;
 using DemoApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoApp.Controllers;
 
-[Route("api/categories")]
+[Authorize]
 [ApiController]
+[Route("api/categories")]
 public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
 {
     private readonly IMapper _mapper = unitOfWork.Mapper;

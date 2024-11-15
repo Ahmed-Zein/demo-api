@@ -3,10 +3,12 @@ using DemoApp.Dto.Products;
 using DemoApp.Interfaces;
 using DemoApp.Models;
 using DemoApp.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/products")]
 public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
