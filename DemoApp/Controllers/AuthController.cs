@@ -20,11 +20,11 @@ public class AuthController(UserManager<AppUser> userManager, ITokenService toke
     public async Task<IActionResult> Register([FromBody] RegisterUserReq request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-        
+
         var user = _mapper.Map<AppUser>(request);
         user.UserName = request.Email;
 
-        var res = await _authService.Register(user, request.Password, "Admin");
+        var res = await _authService.Register(user, request.Password, Roles.User);
         if (!res.Succeeded)
             return BadRequest(res.Errors);
 
@@ -38,10 +38,11 @@ public class AuthController(UserManager<AppUser> userManager, ITokenService toke
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var user = await userManager.FindByEmailAsync(request.Email);
-        if (user is null || ! await _authService.CheckPassword(user, request.Password) )
+        if (user is null || !await _authService.CheckPassword(user, request.Password))
             return BadRequest(new LoginResponse { Message = "Email or password is incorrect", Success = false });
 
-        var token = tokenService.GenerateToken(user);
+        var roles = await userManager.GetRolesAsync(user);
+        var token = tokenService.GenerateToken(user, roles);
         return Ok(new LoginResponse { Success = true, Token = token });
     }
 }

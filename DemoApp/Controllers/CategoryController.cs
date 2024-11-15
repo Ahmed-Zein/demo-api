@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DemoApp.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/categories")]
 public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
@@ -33,6 +32,7 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<CategoryDto>> Create(CreateCategoryDto categoryDto)
     {
         var category = _mapper.Map<Category>(categoryDto);
@@ -48,6 +48,7 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<CategoryDto>> Delete(int id)
     {
         var category = await _categoryRepository.GetByIdAsync(id);

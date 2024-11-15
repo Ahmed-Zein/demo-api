@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
@@ -77,20 +76,33 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme =
-        options.DefaultAuthenticateScheme =
+        options.DefaultChallengeScheme =
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuer = true,
+        ValidateLifetime = true,
         ValidateAudience = true,
         ValidateIssuerSigningKey = true,
+        RequireExpirationTime = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"] ??
                                                                            throw new InvalidOperationException(
                                                                                "JWT:Secret NOT found")))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = StatusCodes.Status403Forbidden; // Explicit 403
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync(
+                "{\"message\": \"Access forbidden: you do not have the required role.\"}");
+        }
     };
 });
 

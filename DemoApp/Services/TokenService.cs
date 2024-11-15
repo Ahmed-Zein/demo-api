@@ -12,11 +12,14 @@ public class TokenService(IConfiguration config) : ITokenService
     private readonly SymmetricSecurityKey _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
         config["Jwt:Secret"] ?? throw new InvalidOperationException("JWT:SECRET can't be NULL")));
 
-    public string GenerateToken(AppUser user)
+    public string GenerateToken(AppUser user, IList<string> roles)
     {
         List<Claim> claims =
         [
+            new Claim(ClaimTypes.Role, string.Join(",", roles)),
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         ];
         var signInCredential = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
 
@@ -33,5 +36,4 @@ public class TokenService(IConfiguration config) : ITokenService
 
         return tokenHandler.WriteToken(token);
     }
-
 }
