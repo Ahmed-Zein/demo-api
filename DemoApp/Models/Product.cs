@@ -10,6 +10,6 @@ public class Product
     [Required, MinLength(4), MaxLength(255)]
     public string Name { get; set; }
 
-    [Required] public int CategoryId { get; set; }
-    public Categoy Category { get; set; } // navigational
+    [Required] public int? CategoryId { get; set; }
+    public Category? Category { get; set; } // navigational
 }

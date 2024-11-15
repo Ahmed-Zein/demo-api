@@ -4,6 +4,6 @@
     1. Entities:
         - [x] Product (ID,Name,CategoryId,etc.)
         - [x] Category(ID,Name) with one-to-many relation.
-    2. APIs: APIs for product and category CRUD operations.
+    2. [x] APIs: APIs for product and category CRUD operations.
     3. Add authentication and authorization using Identity.
-    4. Use Entity Framework as ORM.
+    4. [x] Use Entity Framework as ORM.
