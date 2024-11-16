@@ -6,7 +6,7 @@ namespace DemoApp.Services;
 
 public class AuthService(UserManager<AppUser> userManager) : IAuthService
 {
-    public async Task<IdentityResult> Register(AppUser user, string password, string role= RolesConstants.User)
+    public async Task<IdentityResult> Register(AppUser user, string password, string role = RolesConstants.User)
     {
         var userResult = await userManager.CreateAsync(user, password);
         if (!userResult.Succeeded)
@@ -19,9 +19,19 @@ public class AuthService(UserManager<AppUser> userManager) : IAuthService
         return userResult;
     }
 
-    public async Task<bool> CheckPassword(AppUser user, string password)
+    public async Task<AppUser?> ValidateCredentials(string email, string password)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        return user != null && await CheckPassword(user, password) ? user : null;
+    }
+
+    public Task<IList<string>> GetRoles(AppUser user)
+    {
+        return userManager.GetRolesAsync(user);
+    }
+
+    private async Task<bool> CheckPassword(AppUser user, string password)
     {
         return await userManager.CheckPasswordAsync(user, password);
     }
-    
 }

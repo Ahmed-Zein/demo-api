@@ -1,0 +1,22 @@
+﻿services:
+  demo-app:
+    image: demoapp
+    build:
+      context: .
+      dockerfile: DemoApp/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+  mssql:
+    container_name: sql-server
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    restart: always
+    environment: 
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "SQLConnect1\\!"
+      MSSQL_LOGGING: "verbose"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./data:/var/opt/mssql/data

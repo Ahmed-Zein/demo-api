@@ -9,7 +9,7 @@ namespace DemoApp.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(UserManager<AppUser> userManager, ITokenService tokenService, IUnitOfWork unitOfWork)
+public class AuthController(ITokenService tokenService, IUnitOfWork unitOfWork)
     : ControllerBase
 {
     private readonly IAuthService _authService = unitOfWork.AuthService;
@@ -35,12 +35,11 @@ public class AuthController(UserManager<AppUser> userManager, ITokenService toke
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var user = await userManager.FindByEmailAsync(request.Email);
-        if (user is null || !await _authService.CheckPassword(user, request.Password))
+        var user = await _authService.ValidateCredentials(request.Email, request.Password);
+        if (user is null)
             return BadRequest(new LoginResponse { Message = "Email or password is incorrect", Success = false });
 
-        var roles = await userManager.GetRolesAsync(user);
+        var roles = await _authService.GetRoles(user);
         var token = tokenService.GenerateToken(user, roles);
         return Ok(new LoginResponse { Success = true, Token = token });
     }
