@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DemoApp.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/products")]
 public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
@@ -31,6 +30,7 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
         return Ok(_mapper.Map<ProductDto>(product));
     }
 
+    [Authorize(Roles = RolesConstants.Admin)]
     [HttpPost("{categoryId:int:min(1)}")]
     public async Task<ActionResult<Product>> Create([FromRoute] int categoryId, [FromBody] CreateProductDto productDto)
     {
@@ -47,6 +47,20 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
         return Ok(_mapper.Map<Product>(product));
     }
 
+    [Authorize(Roles = RolesConstants.Admin)]
+    [HttpPut("{productId:int:min(1)}")]
+    public async Task<IActionResult> Update([FromRoute] int productId, [FromBody] UpdateProductDto toUpdate)
+    {
+        var product = await _productRepository.GetByIdAsync(productId);
+        if (product == null) return NotFound();
+
+        product.Name = toUpdate.Name;
+        await unitOfWork.SaveAsync();
+        return Ok(_mapper.Map<ProductDto>(product));
+    }
+
+
+    [Authorize(Roles = RolesConstants.Admin)]
     [HttpDelete("{productId:int:min(1)}")]
     public async Task<IActionResult> Delete([FromRoute] int productId)
     {

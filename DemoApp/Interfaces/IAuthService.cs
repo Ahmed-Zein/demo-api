@@ -1,7 +1,7 @@
 using DemoApp.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace DemoApp.Services;
+namespace DemoApp.Interfaces;
 
 public interface IAuthService
 {

@@ -16,10 +16,12 @@ public class ApplicationDbContext(DbContextOptions options) : IdentityDbContext<
         List<Category> categories = [new() { Id = 1, Name = "Category 1" }, new() { Id = 2, Name = "Category 2" }];
         List<IdentityRole> roles =
         [
-            new() { Name = Models.Roles.Admin, NormalizedName = Models.Roles.Admin.ToUpper() },
-            new() { Name = Models.Roles.User, NormalizedName = Models.Roles.User.ToUpper() }
+            new() { Name = Models.RolesConstants.Admin, NormalizedName = Models.RolesConstants.Admin.ToUpper() },
+            new() { Name = Models.RolesConstants.User, NormalizedName = Models.RolesConstants.User.ToUpper() }
         ];
         modelBuilder.Entity<Category>().HasData(categories);
         modelBuilder.Entity<IdentityRole>().HasData(roles);
+        modelBuilder.Entity<Product>().HasOne(p => p.Category).WithMany(c => c.Products)
+            .HasForeignKey(p => p.CategoryId);
     }
 }

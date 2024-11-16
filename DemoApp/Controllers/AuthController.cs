@@ -2,7 +2,6 @@ using AutoMapper;
 using DemoApp.Dto.AppUser;
 using DemoApp.Interfaces;
 using DemoApp.Models;
-using DemoApp.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +23,7 @@ public class AuthController(UserManager<AppUser> userManager, ITokenService toke
         var user = _mapper.Map<AppUser>(request);
         user.UserName = request.Email;
 
-        var res = await _authService.Register(user, request.Password, Roles.User);
+        var res = await _authService.Register(user, request.Password, RolesConstants.User);
         if (!res.Succeeded)
             return BadRequest(res.Errors);
 

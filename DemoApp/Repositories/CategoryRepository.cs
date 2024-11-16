@@ -19,7 +19,7 @@ public class CategoryRepository(ApplicationDbContext context) : ICategoryReposit
 
     public async Task<Category?> GetByIdAsync(int id)
     {
-        return await context.Categories.FindAsync(id);
+        return await context.Categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task<IEnumerable<Category>> GetAllAsync()
