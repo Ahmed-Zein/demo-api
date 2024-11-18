@@ -2,6 +2,7 @@ using System.Text;
 using Serilog;
 using DemoApp.Data;
 using DemoApp.Interfaces;
+using DemoApp.LoggerHub;
 using DemoApp.Mapper;
 using DemoApp.Models;
 using DemoApp.Repositories;
@@ -51,8 +52,13 @@ builder.Services.AddSwaggerGen(option =>
     });
 });
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(
+        policy =>
+            policy.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(_ => true).AllowCredentials()));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -117,11 +123,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 
+app.UseCors();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<LoggerHub>("logs");
 
 app.Run();

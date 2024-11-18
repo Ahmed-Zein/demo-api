@@ -1,13 +1,19 @@
 using AutoMapper;
 using DemoApp.Data;
 using DemoApp.Interfaces;
+using DemoApp.LoggerHub;
 using DemoApp.Models;
 using DemoApp.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DemoApp.Repositories;
 
-public class UnitOfWork(ApplicationDbContext context, UserManager<AppUser> userManager, IMapper mapper) : IUnitOfWork
+public class UnitOfWork(
+    ApplicationDbContext context,
+    UserManager<AppUser> userManager,
+    IHubContext<LoggerHub.LoggerHub, ILoggerHubClient> loggerHub,
+    IMapper mapper) : IUnitOfWork
 {
     private ICategoryRepository? _categoryRepository;
     private IProductRepository? _productRepository;
@@ -23,6 +29,7 @@ public class UnitOfWork(ApplicationDbContext context, UserManager<AppUser> userM
     }
 
     public IMapper Mapper { get; } = mapper;
+    public IHubContext<LoggerHub.LoggerHub, ILoggerHubClient> LoggerHub { get; } = loggerHub;
 
     public void Dispose()
     {
