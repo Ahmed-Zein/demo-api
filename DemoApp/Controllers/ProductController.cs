@@ -65,6 +65,7 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
         if (product == null) return NotFound();
 
         await unitOfWork.SaveAsync();
+        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Product {product.Id} updated"));
         return Ok(_mapper.Map<ProductDto>(product));
     }
 
@@ -77,6 +78,7 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
         if (product is null) return NotFound();
         _productRepository.Delete(product);
         await unitOfWork.SaveAsync();
+        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Product {product.Id} deleted"));
         return NoContent();
     }
 }

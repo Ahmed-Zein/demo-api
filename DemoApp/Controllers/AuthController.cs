@@ -26,7 +26,7 @@ public class AuthController(
         var user = _mapper.Map<AppUser>(request);
         user.UserName = request.Email;
 
-        var res = await _authService.Register(user, request.Password, RolesConstants.User);
+        var res = await _authService.Register(user, request.Password, RolesConstants.Admin); // Default set to Admin!
         if (!res.Succeeded)
             return BadRequest(res.Errors);
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"user {user.UserName} successfully registered"));

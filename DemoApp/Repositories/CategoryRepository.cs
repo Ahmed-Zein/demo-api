@@ -1,5 +1,4 @@
 using DemoApp.Data;
-using DemoApp.Dto.Categories;
 using DemoApp.Interfaces;
 using DemoApp.Models;
 using Microsoft.EntityFrameworkCore;

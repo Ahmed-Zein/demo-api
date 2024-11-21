@@ -1,22 +1,23 @@
+const port = 8080;
 const mapLvl = (lvl) => {
-  switch (lvl) {
-    case 0:
-      return "info";
-    default:
-      return "error";
-  }
+    switch (lvl) {
+        case 0:
+            return "info";
+        default:
+            return "error";
+    }
 };
 const table = document.getElementById("tableBody");
 const connection = new signalR.HubConnectionBuilder()
-  .withUrl("http://localhost:5242/logs")
-  .withAutomaticReconnect()
-  .configureLogging(signalR.LogLevel.Information)
-  .build();
+    .withUrl(`http://localhost:${port}/logs`)
+    .withAutomaticReconnect()
+    .configureLogging(signalR.LogLevel.Information)
+    .build();
 
 connection.on("OnLog", (data) => {
-  console.log(data);
-  let lvlCls = mapLvl(data.level);
-  table.innerHTML += `
+    console.log(data);
+    let lvlCls = mapLvl(data.level);
+    table.innerHTML += `
     <tr>
       <td class=${lvlCls}>${lvlCls}</td>
       <td>${data.message}</td>
@@ -25,8 +26,8 @@ connection.on("OnLog", (data) => {
   `;
 });
 connection
-  .start()
-  .then((_) => {
-    console.log("CONNECTED");
-  })
-  .catch((e) => console.error(e));
+    .start()
+    .then((_) => {
+        console.log("CONNECTED");
+    })
+    .catch((e) => console.error(e));

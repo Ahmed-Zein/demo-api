@@ -1,6 +1,7 @@
 using AutoMapper;
 using DemoApp.Dto.Categories;
 using DemoApp.Interfaces;
+using DemoApp.LoggerHub;
 using DemoApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,7 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
         if (category is null)
             return NotFound();
         await unitOfWork.SaveAsync();
+        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Category {category.Id} updated"));
         return Ok(_mapper.Map<CategoryDto>(category));
     }
 
@@ -63,6 +65,7 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
         if (category == null) return NotFound();
         _categoryRepository.Delete(category);
         await unitOfWork.SaveAsync();
+        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Category {category.Id} deleted"));
         return NoContent();
     }
 }
