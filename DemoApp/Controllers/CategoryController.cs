@@ -16,19 +16,19 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly ICategoryRepository _categoryRepository = unitOfWork.CategoryRepository;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
+    public async Task<ActionResult<List<CategoryDto>>> GetAll()
     {
         var categories = await _categoryRepository.GetAllAsync();
-        return Ok(_mapper.Map<IEnumerable<CategoryDto>>(categories));
+        return Ok(_mapper.Map<List<CategoryDto>>(categories));
     }
 
-    [HttpGet("{id:int:min(1)}")]
-    public async Task<ActionResult<CategoryDto>> GetAll([FromRoute] int id)
+    [HttpGet("{categoryId:int:min(1)}")]
+    public async Task<ActionResult<CategoryDto>> GetAll([FromRoute] int categoryId)
     {
-        if (!await _categoryRepository.AnyAsync(id))
-            return BadRequest(new { message = "Category not found." });
-        var categories = await unitOfWork.CategoryRepository.GetByIdAsync(id);
-        return Ok(_mapper.Map<CategoryDto>(categories));
+        var categories = await unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
+        return (categories is null)
+            ? BadRequest(new { message = "Category not found." })
+            : Ok(_mapper.Map<CategoryDto>(categories));
     }
 
     [HttpPost]
@@ -40,19 +40,24 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
         var category = _mapper.Map<Category>(categoryDto);
         await _categoryRepository.AddAsync(category);
         await unitOfWork.SaveAsync();
-        return Ok(_mapper.Map<CategoryDto>(category));
+
+        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"A new Category Add with Id: {category.Id}"));
+        return CreatedAtAction(nameof(GetAll), new { categoryId = category.Id }, _mapper.Map<CategoryDto>(category));
     }
 
-    [Authorize(Roles = RolesConstants.Admin)]
     [HttpPut("{id:int:min(1)}")]
+    [Authorize(Roles = RolesConstants.Admin)]
     public async Task<ActionResult<CategoryDto>> Put([FromRoute] int id, UpdateCategoryDto toUpdate)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
         var category = await _categoryRepository.UpdateAsync(id, _mapper.Map<Category>(toUpdate));
         if (category is null)
             return NotFound();
+
         await unitOfWork.SaveAsync();
+
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Category {category.Id} updated"));
         return Ok(_mapper.Map<CategoryDto>(category));
     }
@@ -62,9 +67,12 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
     public async Task<ActionResult<CategoryDto>> Delete(int id)
     {
         var category = await _categoryRepository.GetByIdAsync(id);
-        if (category == null) return NotFound();
+        if (category is null)
+            return NotFound();
+
         _categoryRepository.Delete(category);
         await unitOfWork.SaveAsync();
+
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Category {category.Id} deleted"));
         return NoContent();
     }

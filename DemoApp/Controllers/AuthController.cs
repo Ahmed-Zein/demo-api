@@ -4,7 +4,6 @@ using DemoApp.Interfaces;
 using DemoApp.LoggerHub;
 using DemoApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 
 namespace DemoApp.Controllers;
 

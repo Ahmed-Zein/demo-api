@@ -19,12 +19,22 @@ public class CategoryRepository(ApplicationDbContext context) : ICategoryReposit
 
     public async Task<Category?> GetByIdAsync(int id)
     {
-        return await context.Categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
+        return await context.Categories
+            .Include(c => c.Products)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task<List<Category>> GetAllAsync()
     {
-        return await context.Categories.ToListAsync();
+        return await context.Categories.Select(
+            c => new Category
+            {
+                Id = c.Id,
+                Name = c.Name,
+                CreatedAt = c.CreatedAt
+            }
+        ).AsNoTracking().ToListAsync();
     }
 
     public async Task<Category?> UpdateAsync(int id, Category toUpdate)
