@@ -17,10 +17,11 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
     private readonly IProductRepository _productRepository = unitOfWork.ProductRepository;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+    public async Task<ActionResult<List<Product>>> GetAll()
     {
         var products = _mapper.Map<IList<ProductDto>>(await _productRepository.GetAllAsync());
-        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Test"));
+
+        _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Ping SignalR"));
         return Ok(products);
     }
 
@@ -28,13 +29,16 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
     public async Task<ActionResult<ProductDto>> GetById([FromRoute] int productId)
     {
         var product = await _productRepository.GetByIdAsync(productId);
-        if (product == null) return NotFound();
+        if (product is null)
+            return NotFound();
+
         return Ok(_mapper.Map<ProductDto>(product));
     }
 
     [Authorize(Roles = RolesConstants.Admin)]
     [HttpPost("{categoryId:int:min(1)}")]
-    public async Task<ActionResult<Product>> Create([FromRoute] int categoryId, [FromBody] CreateProductDto productDto)
+    public async Task<ActionResult<ProductDto>> Create([FromRoute] int categoryId,
+        [FromBody] CreateProductDto productDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -48,11 +52,13 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
 
         var product = _mapper.Map<Product>(productDto);
         product.CategoryId = categoryId;
-        await _productRepository.AddAsync(product);
+
+        await _productRepository.AddAsync(product, categoryId);
+
         await unitOfWork.SaveAsync();
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Product {product.Name} created"));
 
-        return Ok(_mapper.Map<Product>(product));
+        return CreatedAtAction(nameof(GetById), new { productId = product.Id }, _mapper.Map<ProductDto>(product));
     }
 
     [Authorize(Roles = RolesConstants.Admin)]
@@ -61,10 +67,13 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
         var product = await _productRepository.UpdateAsync(productId, _mapper.Map<Product>(toUpdate));
-        if (product == null) return NotFound();
+        if (product is null)
+            return NotFound();
 
         await unitOfWork.SaveAsync();
+
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Product {product.Id} updated"));
         return Ok(_mapper.Map<ProductDto>(product));
     }
@@ -75,9 +84,12 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
     public async Task<IActionResult> Delete([FromRoute] int productId)
     {
         var product = await _productRepository.GetByIdAsync(productId);
-        if (product is null) return NotFound();
+        if (product is null)
+            return NotFound();
+
         _productRepository.Delete(product);
         await unitOfWork.SaveAsync();
+
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Product {product.Id} deleted"));
         return NoContent();
     }
