@@ -67,7 +67,9 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+        // .LogTo(Console.WriteLine, LogLevel.Information)
+        .EnableSensitiveDataLogging();
 });
 
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -101,13 +103,20 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(
+                new { Message = "Access forbidden: you do not have the required role." });
+        },
         OnChallenge = context =>
         {
             context.HandleResponse();
-            context.Response.StatusCode = StatusCodes.Status403Forbidden; // Explicit 403
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
-            return context.Response.WriteAsync(
-                "{\"message\": \"Access forbidden: you do not have the required role.\"}");
+
+            return context.Response.WriteAsJsonAsync(new { Message = "Unauthorized" });
         }
     };
 });

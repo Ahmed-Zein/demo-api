@@ -34,6 +34,8 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
     [Authorize(Roles = RolesConstants.Admin)]
     public async Task<ActionResult<CategoryDto>> Create(CreateCategoryDto categoryDto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         var category = _mapper.Map<Category>(categoryDto);
         await _categoryRepository.AddAsync(category);
         await unitOfWork.SaveAsync();
@@ -44,10 +46,11 @@ public class CategoryController(IUnitOfWork unitOfWork) : ControllerBase
     [HttpPut("{id:int:min(1)}")]
     public async Task<ActionResult<CategoryDto>> Put([FromRoute] int id, UpdateCategoryDto toUpdate)
     {
-        var category = await _categoryRepository.GetByIdAsync(id);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        var category = await _categoryRepository.UpdateAsync(id, _mapper.Map<Category>(toUpdate));
         if (category is null)
             return NotFound();
-        category.Name = toUpdate.Name;
         await unitOfWork.SaveAsync();
         return Ok(_mapper.Map<CategoryDto>(category));
     }

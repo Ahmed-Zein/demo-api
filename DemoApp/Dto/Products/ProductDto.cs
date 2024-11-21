@@ -20,4 +20,7 @@ public class CreateProductDto
     public string Name { get; set; }
 }
 
-public class UpdateProductDto : CreateProductDto;
+public class UpdateProductDto : CreateProductDto
+{
+    // public int CategoryId { get; set; }
+}

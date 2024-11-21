@@ -41,7 +41,8 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
 
         if (!await unitOfWork.CategoryRepository.AnyAsync(categoryId))
         {
-            _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(1, $"Failed to create a Product for category {categoryId}"));
+            _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(1,
+                $"Failed to create a Product for category {categoryId}"));
             return NotFound(new { message = "Category not found" });
         }
 
@@ -50,7 +51,7 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
         await _productRepository.AddAsync(product);
         await unitOfWork.SaveAsync();
         _ = unitOfWork.LoggerHub.Clients.All.OnLog(new LogMessage(0, $"Product {product.Name} created"));
-        
+
         return Ok(_mapper.Map<Product>(product));
     }
 
@@ -58,10 +59,11 @@ public class ProductController(IUnitOfWork unitOfWork) : ControllerBase
     [HttpPut("{productId:int:min(1)}")]
     public async Task<IActionResult> Update([FromRoute] int productId, [FromBody] UpdateProductDto toUpdate)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        var product = await _productRepository.UpdateAsync(productId, _mapper.Map<Product>(toUpdate));
         if (product == null) return NotFound();
 
-        product.Name = toUpdate.Name;
         await unitOfWork.SaveAsync();
         return Ok(_mapper.Map<ProductDto>(product));
     }

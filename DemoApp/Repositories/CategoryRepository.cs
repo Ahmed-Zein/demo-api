@@ -1,4 +1,5 @@
 using DemoApp.Data;
+using DemoApp.Dto.Categories;
 using DemoApp.Interfaces;
 using DemoApp.Models;
 using Microsoft.EntityFrameworkCore;
@@ -22,14 +23,18 @@ public class CategoryRepository(ApplicationDbContext context) : ICategoryReposit
         return await context.Categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<List<Category>> GetAllAsync()
     {
         return await context.Categories.ToListAsync();
     }
 
-    public Task UpdateAsync(Category entity)
+    public async Task<Category?> UpdateAsync(int id, Category toUpdate)
     {
-        throw new NotImplementedException();
+        var category = await context.Categories.FindAsync(id);
+        if (category is null)
+            return null;
+        category.Name = toUpdate.Name;
+        return category;
     }
 
     public void Delete(Category entity)

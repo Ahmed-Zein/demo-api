@@ -27,7 +27,7 @@ public class ProductRepository(ApplicationDbContext context) : IProductRepositor
         return await context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public async Task<IEnumerable<Product>> GetAllAsync()
+    public async Task<List<Product>> GetAllAsync()
     {
         return await context.Products.ToListAsync();
     }
@@ -37,9 +37,18 @@ public class ProductRepository(ApplicationDbContext context) : IProductRepositor
         return await context.Products.Where(p => p.Id == categoryId).ToListAsync();
     }
 
-    public Task UpdateAsync(Product entity)
+    public async Task<Product?> UpdateAsync(int id, Product toUpdate)
     {
-        throw new NotImplementedException();
+        var product = await context.Products.FindAsync(id);
+
+        Console.WriteLine($"{id} => {toUpdate.Name} , {toUpdate.CategoryId}");
+        if (product is null)
+        {
+            return null;
+        }
+
+        product.Name = toUpdate.Name;
+        return product;
     }
 
     public void Delete(Product entity)
